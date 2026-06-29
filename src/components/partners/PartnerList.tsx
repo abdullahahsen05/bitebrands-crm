@@ -20,7 +20,7 @@ export function PartnerList() {
   const partners = filteredPartners(data, filters).sort((a, b) => a.name.localeCompare(b.name));
   const kpis = kpiSummary(data, filters);
 
-  const missingVerification = data.partners.flatMap((partner) =>
+  const missingVerification = partners.flatMap((partner) =>
     partner.concepts
       .filter((conceptId) => partner.billing[conceptId]?.live && !partner.billing[conceptId]?.verifDone)
       .map((conceptId) => ({
@@ -31,7 +31,7 @@ export function PartnerList() {
       })),
   );
 
-  const missingBilling = data.partners.flatMap((partner) =>
+  const missingBilling = partners.flatMap((partner) =>
     partner.concepts
       .filter((conceptId) => partner.billing[conceptId]?.live && !partner.billing[conceptId]?.invoiced)
       .map((conceptId) => ({

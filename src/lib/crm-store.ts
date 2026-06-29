@@ -88,10 +88,16 @@ type CrmStore = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+const COUNTRY_FILTER_KEY = "crm_country_filter";
+
 function createUiState(): UiState {
+  const savedCountry =
+    typeof window !== "undefined"
+      ? (localStorage.getItem(COUNTRY_FILTER_KEY) ?? "all")
+      : "all";
   return {
     view: "list",
-    filters: { query: "", country: "all", concept: "all", phase: "all" },
+    filters: { query: "", country: savedCountry, concept: "all", phase: "all" },
     selectedPartnerId: null,
     selectedRelationId: null,
     adminTab: "landen",
@@ -455,8 +461,12 @@ export const useCrmStore = create<CrmStore>()((set, get) => ({
   setView: (view) =>
     set((state) => ({ ui: { ...state.ui, view, mobileNavOpen: false } })),
 
-  setFilters: (filters) =>
-    set((state) => ({ ui: { ...state.ui, filters: { ...state.ui.filters, ...filters } } })),
+  setFilters: (filters) => {
+    if (filters.country !== undefined) {
+      localStorage.setItem(COUNTRY_FILTER_KEY, filters.country);
+    }
+    set((state) => ({ ui: { ...state.ui, filters: { ...state.ui.filters, ...filters } } }));
+  },
 
   setAdminTab: (adminTab) =>
     set((state) => ({ ui: { ...state.ui, adminTab } })),

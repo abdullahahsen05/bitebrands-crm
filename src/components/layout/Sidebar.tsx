@@ -130,7 +130,7 @@ export function Sidebar({
       <div className="mt-3 space-y-1">
         <button
           type="button"
-          onClick={() => setFilters({ country: "all" })}
+          onClick={() => { setFilters({ country: "all" }); setView("list"); closeMobileNav(); }}
           className={cn(
             "flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm transition",
             filters.country === "all"
@@ -145,7 +145,7 @@ export function Sidebar({
           <button
             key={country.code}
             type="button"
-            onClick={() => setFilters({ country: country.code })}
+            onClick={() => { setFilters({ country: country.code }); setView("list"); closeMobileNav(); }}
             className={cn(
               "flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm transition",
               filters.country === country.code
