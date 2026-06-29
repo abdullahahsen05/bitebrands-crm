@@ -38,11 +38,12 @@ export function PartnerRegistrationTab({ partner }: { partner: Partner }) {
                   <label className="space-y-1 text-sm">
                     <span className="text-[var(--ink-soft)]">Login</span>
                     <input
+                      key={values?.login ?? ""}
                       className="h-10 w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-3"
-                      value={values?.login ?? ""}
-                      onChange={(event) =>
+                      defaultValue={values?.login ?? ""}
+                      onBlur={(e) =>
                         updatePartnerPlatform(partner.id, platform.id, (draft) => {
-                          draft.login = event.target.value;
+                          draft.login = e.target.value;
                         })
                       }
                     />
@@ -50,11 +51,12 @@ export function PartnerRegistrationTab({ partner }: { partner: Partner }) {
                   <label className="space-y-1 text-sm">
                     <span className="text-[var(--ink-soft)]">Partner-ID</span>
                     <input
+                      key={values?.partnerId ?? ""}
                       className="h-10 w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-3"
-                      value={values?.partnerId ?? ""}
-                      onChange={(event) =>
+                      defaultValue={values?.partnerId ?? ""}
+                      onBlur={(e) =>
                         updatePartnerPlatform(partner.id, platform.id, (draft) => {
-                          draft.partnerId = event.target.value;
+                          draft.partnerId = e.target.value;
                         })
                       }
                     />
@@ -62,11 +64,12 @@ export function PartnerRegistrationTab({ partner }: { partner: Partner }) {
                   <label className="space-y-1 text-sm md:col-span-2">
                     <span className="text-[var(--ink-soft)]">Wachtwoord</span>
                     <input
+                      key={values?.pass ?? ""}
                       className="h-10 w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-3 mono"
-                      value={values?.pass ?? ""}
-                      onChange={(event) =>
+                      defaultValue={values?.pass ?? ""}
+                      onBlur={(e) =>
                         updatePartnerPlatform(partner.id, platform.id, (draft) => {
-                          draft.pass = event.target.value;
+                          draft.pass = e.target.value;
                         })
                       }
                     />
@@ -76,11 +79,12 @@ export function PartnerRegistrationTab({ partner }: { partner: Partner }) {
                 <label className="space-y-1 text-sm md:col-span-2">
                   <span className="text-[var(--ink-soft)]">URL</span>
                   <input
+                    key={values?.url ?? ""}
                     className="h-10 w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-3"
-                    value={values?.url ?? ""}
-                    onChange={(event) =>
+                    defaultValue={values?.url ?? ""}
+                    onBlur={(e) =>
                       updatePartnerPlatform(partner.id, platform.id, (draft) => {
-                        draft.url = event.target.value;
+                        draft.url = e.target.value;
                       })
                     }
                   />

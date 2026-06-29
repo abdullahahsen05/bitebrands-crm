@@ -51,11 +51,10 @@ export function PartnerBillingTab({ partner }: { partner: Partner }) {
             <label className="mt-4 block space-y-1 text-sm">
               <span className="text-[var(--ink-soft)]">Verificatiecode</span>
               <input
+                key={billing?.verif ?? ""}
                 className="h-10 w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-3 mono md:max-w-xs"
-                value={billing?.verif ?? ""}
-                onChange={(event) =>
-                  setPartnerVerificationCode(partner.id, conceptId, event.target.value)
-                }
+                defaultValue={billing?.verif ?? ""}
+                onBlur={(e) => setPartnerVerificationCode(partner.id, conceptId, e.target.value)}
               />
             </label>
           </div>

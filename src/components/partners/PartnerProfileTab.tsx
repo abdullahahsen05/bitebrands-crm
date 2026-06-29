@@ -11,6 +11,12 @@ export function PartnerProfileTab({ partner }: { partner: Partner }) {
   const fieldClass =
     "h-10 w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-3 text-sm";
 
+  function blurField(field: keyof Partner, value: string | number) {
+    updatePartner(partner.id, (draft) => {
+      (draft as Record<string, unknown>)[field] = value;
+    });
+  }
+
   return (
     <div className="space-y-6">
       <section className="space-y-4">
@@ -21,37 +27,28 @@ export function PartnerProfileTab({ partner }: { partner: Partner }) {
           <label className="space-y-1 text-sm">
             <span className="text-[var(--ink-soft)]">Partnernaam</span>
             <input
+              key={partner.name}
               className={fieldClass}
-              value={partner.name}
-              onChange={(event) =>
-                updatePartner(partner.id, (draft) => {
-                  draft.name = event.target.value;
-                })
-              }
+              defaultValue={partner.name}
+              onBlur={(e) => blurField("name", e.target.value)}
             />
           </label>
           <label className="space-y-1 text-sm">
             <span className="text-[var(--ink-soft)]">Contactpersoon</span>
             <input
+              key={partner.contact}
               className={fieldClass}
-              value={partner.contact}
-              onChange={(event) =>
-                updatePartner(partner.id, (draft) => {
-                  draft.contact = event.target.value;
-                })
-              }
+              defaultValue={partner.contact}
+              onBlur={(e) => blurField("contact", e.target.value)}
             />
           </label>
           <label className="space-y-1 text-sm">
             <span className="text-[var(--ink-soft)]">Stad</span>
             <input
+              key={partner.city}
               className={fieldClass}
-              value={partner.city}
-              onChange={(event) =>
-                updatePartner(partner.id, (draft) => {
-                  draft.city = event.target.value;
-                })
-              }
+              defaultValue={partner.city}
+              onBlur={(e) => blurField("city", e.target.value)}
             />
           </label>
           <label className="space-y-1 text-sm">
@@ -59,11 +56,7 @@ export function PartnerProfileTab({ partner }: { partner: Partner }) {
             <select
               className={fieldClass}
               value={partner.country}
-              onChange={(event) =>
-                updatePartner(partner.id, (draft) => {
-                  draft.country = event.target.value;
-                })
-              }
+              onChange={(e) => blurField("country", e.target.value)}
             >
               {config.countries.map((country) => (
                 <option key={country.code} value={country.code}>
@@ -75,38 +68,29 @@ export function PartnerProfileTab({ partner }: { partner: Partner }) {
           <label className="space-y-1 text-sm">
             <span className="text-[var(--ink-soft)]">Telefoon</span>
             <input
+              key={partner.phone ?? ""}
               className={fieldClass}
-              value={partner.phone ?? ""}
-              onChange={(event) =>
-                updatePartner(partner.id, (draft) => {
-                  draft.phone = event.target.value;
-                })
-              }
+              defaultValue={partner.phone ?? ""}
+              onBlur={(e) => blurField("phone", e.target.value)}
             />
           </label>
           <label className="space-y-1 text-sm">
             <span className="text-[var(--ink-soft)]">E-mail</span>
             <input
+              key={partner.email ?? ""}
               className={fieldClass}
-              value={partner.email ?? ""}
-              onChange={(event) =>
-                updatePartner(partner.id, (draft) => {
-                  draft.email = event.target.value;
-                })
-              }
+              defaultValue={partner.email ?? ""}
+              onBlur={(e) => blurField("email", e.target.value)}
             />
           </label>
           <label className="space-y-1 text-sm">
             <span className="text-[var(--ink-soft)]">Fee %</span>
             <input
+              key={partner.fee}
               type="number"
               className={fieldClass}
-              value={partner.fee}
-              onChange={(event) =>
-                updatePartner(partner.id, (draft) => {
-                  draft.fee = Number(event.target.value || 0);
-                })
-              }
+              defaultValue={partner.fee}
+              onBlur={(e) => blurField("fee", Number(e.target.value || 0))}
             />
           </label>
         </div>
@@ -147,11 +131,12 @@ export function PartnerProfileTab({ partner }: { partner: Partner }) {
             <label key={field.id} className="space-y-1 text-sm">
               <span className="text-[var(--ink-soft)]">{field.label}</span>
               <input
+                key={partner.custom[field.id] ?? ""}
                 className={fieldClass}
-                value={partner.custom[field.id] ?? ""}
-                onChange={(event) =>
+                defaultValue={partner.custom[field.id] ?? ""}
+                onBlur={(e) =>
                   updatePartner(partner.id, (draft) => {
-                    draft.custom[field.id] = event.target.value;
+                    draft.custom[field.id] = e.target.value;
                   })
                 }
               />

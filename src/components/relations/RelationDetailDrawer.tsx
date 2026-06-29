@@ -26,20 +26,23 @@ export function RelationDetailDrawer() {
     <Drawer open={Boolean(relation)} title={relation.name} subtitle={relation.category} onClose={closeRelation}>
       <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2">
-          {[
-            ["contact", "Contactpersoon", relation.contact ?? ""],
-            ["phone", "Telefoon", relation.phone ?? ""],
-            ["email", "E-mail", relation.email ?? ""],
-            ["website", "Website", relation.website ?? ""],
-          ].map(([field, label, value]) => (
+          {(
+            [
+              ["contact", "Contactpersoon", relation.contact ?? ""],
+              ["phone", "Telefoon", relation.phone ?? ""],
+              ["email", "E-mail", relation.email ?? ""],
+              ["website", "Website", relation.website ?? ""],
+            ] as [string, string, string][]
+          ).map(([field, label, value]) => (
             <label key={field} className="space-y-1 text-sm">
               <span className="text-[var(--ink-soft)]">{label}</span>
               <input
+                key={value}
                 className="h-10 w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-3"
-                value={value}
-                onChange={(event) =>
+                defaultValue={value}
+                onBlur={(e) =>
                   updateRelation(relation.id, (draft) => {
-                    draft[field as "contact" | "phone" | "email" | "website"] = event.target.value;
+                    draft[field as "contact" | "phone" | "email" | "website"] = e.target.value;
                   })
                 }
               />
@@ -48,12 +51,13 @@ export function RelationDetailDrawer() {
           <label className="space-y-1 text-sm md:col-span-2">
             <span className="text-[var(--ink-soft)]">Notities</span>
             <textarea
+              key={relation.notes ?? ""}
               rows={4}
               className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-3 py-3"
-              value={relation.notes ?? ""}
-              onChange={(event) =>
+              defaultValue={relation.notes ?? ""}
+              onBlur={(e) =>
                 updateRelation(relation.id, (draft) => {
-                  draft.notes = event.target.value;
+                  draft.notes = e.target.value;
                 })
               }
             />
@@ -86,7 +90,7 @@ export function RelationDetailDrawer() {
             rows={4}
             className="w-full rounded-xl border border-[var(--line)] bg-white px-3 py-3"
             value={text}
-            onChange={(event) => setText(event.target.value)}
+            onChange={(e) => setText(e.target.value)}
             placeholder="Log een contactmoment"
           />
           <div className="flex justify-end">

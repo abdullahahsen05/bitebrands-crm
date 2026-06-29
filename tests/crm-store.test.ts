@@ -1,4 +1,36 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
+
+// Mock Supabase so tests never make real network calls.
+vi.mock("../src/lib/supabase/client", () => ({
+  supabase: {
+    auth: {
+      getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+      signInWithPassword: vi.fn().mockResolvedValue({ error: null }),
+      signOut: vi.fn().mockResolvedValue({}),
+      onAuthStateChange: vi.fn().mockReturnValue({
+        data: { subscription: { unsubscribe: vi.fn() } },
+      }),
+    },
+    from: vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockResolvedValue({ error: null }),
+      upsert: vi.fn().mockResolvedValue({ error: null }),
+      update: vi.fn().mockReturnThis(),
+      delete: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+    }),
+    channel: vi.fn().mockReturnValue({
+      on: vi.fn().mockReturnThis(),
+      subscribe: vi.fn().mockReturnThis(),
+    }),
+  },
+}));
+
+vi.mock("../src/lib/supabase/loader", () => ({
+  loadAllData: vi.fn().mockResolvedValue(null),
+}));
 
 import { useCrmStore } from "../src/lib/crm-store";
 import { createInitialData } from "../src/lib/mock-data";

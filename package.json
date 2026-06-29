@@ -8,9 +8,16 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "setup:supabase": "tsx --env-file=.env.local scripts/setup-supabase.ts",
+    "db:migrate": "tsx --env-file=.env.local scripts/run-migration.ts schema",
+    "db:seed": "tsx --env-file=.env.local scripts/run-migration.ts seed",
+    "db:setup": "tsx --env-file=.env.local scripts/run-migration.ts all",
+    "db:realtime": "tsx --env-file=.env.local scripts/apply-realtime-migration.ts",
+    "cleanup:qa": "tsx --env-file=.env.local scripts/cleanup-qa-data.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.108.2",
     "clsx": "^2.1.1",
     "lucide-react": "^1.22.0",
     "next": "16.2.9",
@@ -22,11 +29,14 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
+    "pg": "^8.22.0",
     "tailwindcss": "^4",
+    "tsx": "^4.22.4",
     "typescript": "^5",
     "vitest": "^4.1.9"
   }

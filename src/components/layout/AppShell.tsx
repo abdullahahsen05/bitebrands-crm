@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Download, RotateCcw } from "lucide-react";
 
 import { AdminPanel } from "@/components/admin/AdminPanel";
@@ -34,15 +35,43 @@ function ActiveView() {
   return <AdminPanel />;
 }
 
+function LoadingScreen() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[var(--bg)]">
+      <div className="flex flex-col items-center gap-4">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent)] text-2xl font-bold text-white">
+          B
+        </div>
+        <p className="text-sm text-[var(--ink-soft)]">CRM laden…</p>
+      </div>
+    </div>
+  );
+}
+
 export function AppShell() {
   const loggedIn = useCrmStore((state) => state.data.loggedIn);
+  const initialized = useCrmStore((state) => state.initialized);
+  const loading = useCrmStore((state) => state.loading);
   const data = useCrmStore((state) => state.data);
   const toast = useCrmStore((state) => state.ui.toast);
   const mobileNavOpen = useCrmStore((state) => state.ui.mobileNavOpen);
   const clearToast = useCrmStore((state) => state.clearToast);
   const closeMobileNav = useCrmStore((state) => state.closeMobileNav);
-  const resetDemoData = useCrmStore((state) => state.resetDemoData);
   const showToast = useCrmStore((state) => state.showToast);
+  const initAuth = useCrmStore((state) => state.initAuth);
+  const loadData = useCrmStore((state) => state.loadData);
+
+  // Initialize Supabase auth + session check on first render.
+  useEffect(() => {
+    void initAuth();
+    // initAuth sets up a persistent auth listener; no cleanup needed.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Show loading screen while checking session or loading data.
+  if (!initialized || loading) {
+    return <LoadingScreen />;
+  }
 
   if (!loggedIn) {
     return <DemoLogin />;
@@ -71,12 +100,19 @@ export function AppShell() {
             </Button>
             <Button
               onClick={() => {
-                resetDemoData();
-                showToast("Voorbeelddata hersteld");
+                void (async () => {
+                  const { data: { session } } = await import("@/lib/supabase/client").then(m => m.supabase.auth.getSession());
+                  if (session?.user) {
+                    await loadData(session.user.id);
+                    showToast("Data herladen");
+                  } else {
+                    showToast("Geen sessie gevonden");
+                  }
+                })();
               }}
             >
               <RotateCcw className="h-4 w-4" />
-              Herstel voorbeelddata
+              Herladen
             </Button>
           </div>
 
