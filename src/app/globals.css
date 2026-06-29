@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f6f5f3;
+  --surface: #ffffff;
+  --ink: #1a1714;
+  --ink-soft: #6b635c;
+  --line: #e7e3dd;
+  --sidebar: #221d1a;
+  --sidebar-soft: #3a322d;
+  --sidebar-ink: #e9e2db;
+  --accent: #f0531c;
+  --accent-soft: #fdede5;
+  --green: #2e9e5b;
+  --green-soft: #e3f3ea;
+  --amber: #e0962b;
+  --amber-soft: #fbf0df;
+  --grey: #9a938c;
+  --blue: #2f6fb0;
+  --blue-soft: #e7f0fb;
+  --purple: #7a4fc0;
+  --red: #c2382f;
+  --red-soft: #fbeaea;
+  --radius: 16px;
+  --shadow: 0 1px 2px rgba(26, 23, 20, 0.06), 0 8px 24px rgba(26, 23, 20, 0.06);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-inter), sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.grotesk {
+  font-family: var(--font-grotesk), sans-serif;
+}
+
+.mono {
+  font-family: var(--font-mono), monospace;
+}
+
+.surface-card {
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.app-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #d8d0c7 transparent;
+}
+
+.app-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.app-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #d8d0c7;
+}
