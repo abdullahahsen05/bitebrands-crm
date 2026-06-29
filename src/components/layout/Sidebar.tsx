@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import Image from "next/image";
+
 import {
   LayoutDashboard,
   PanelLeft,
@@ -39,14 +42,29 @@ export function Sidebar({
   const showToast = useCrmStore((state) => state.showToast);
   const data = useCrmStore((state) => state.data);
   const closeMobileNav = useCrmStore((state) => state.closeMobileNav);
+  const [logoFailed, setLogoFailed] = useState(false);
 
   const myTasks = openTasksForUser(data.tasks, data.currentUserId).length;
 
   return (
     <aside className="flex h-full flex-col bg-[var(--sidebar)] px-4 py-5 text-[var(--sidebar-ink)]">
-      <div className="mb-6 rounded-2xl border border-white/10 px-4 py-4 text-center">
-        <div className="grotesk text-lg font-semibold">Bite Brands</div>
-        <div className="mt-1 text-xs uppercase tracking-[0.24em] text-[#9c8f85]">Partner CRM</div>
+      <div className="mb-6 flex flex-col items-center justify-center gap-2 rounded-2xl border border-white/10 px-4 py-6 text-center">
+        {logoFailed ? (
+          <div className="grotesk text-lg font-semibold">Bite Brands</div>
+        ) : (
+          <div className="relative h-[88px] w-[200px]">
+            <Image
+              src="/logos/bite-brands-logo.png"
+              alt="Bite Brands"
+              fill
+              sizes="200px"
+              className="object-contain"
+              onError={() => setLogoFailed(true)}
+              priority
+            />
+          </div>
+        )}
+        <div className="text-xs uppercase tracking-[0.24em] text-[#9c8f85]">Partner CRM</div>
       </div>
 
       <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#857a71]">
