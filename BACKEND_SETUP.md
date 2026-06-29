@@ -73,15 +73,67 @@ The migration is idempotent — safe to re-run.
 
 Run `npm run setup:supabase` — it creates the demo users via the Supabase Admin Auth API:
 
-| Email | Password | Role |
-|---|---|---|
-| huib@bitebrands.nl | demo123 | admin |
-| kerem@bitebrands.nl | demo123 | manager |
-| ana@bitebrands.nl | demo123 | manager |
-| sem@bitebrands.nl | demo123 | viewer |
-| tomasz@bitebrands.nl | demo123 | viewer |
+| Email | Password | Name | Role |
+|---|---|---|---|
+| huib@bitebrands.demo | demo | Huib | Beheerder |
+| sanne@bitebrands.demo | demo | Sanne | Facturatie-manager |
+| kerem@bitebrands.demo | demo | Kerem | Sales |
+| noor@bitebrands.demo | demo | Noor | Operations |
+| lotte@bitebrands.demo | demo | Lotte | Marketing |
+
+The script is idempotent — safe to re-run. Existing users are skipped; profiles are upserted.
 
 > These are demo credentials only. Rotate before production (Phase C).
+
+---
+
+## Vercel deployment
+
+The frontend is a fully static Next.js app — no server-side functions. Only two environment variables are needed in Vercel:
+
+| Variable | Where to find it | Required on Vercel |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase Dashboard → Settings → API → Project URL | **Yes** |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Dashboard → Settings → API → anon/public key | **Yes** |
+| `SUPABASE_SERVICE_ROLE_KEY` | Scripts only — **never add to Vercel** | No |
+| `SUPABASE_DB_URL` | Scripts only — **never add to Vercel** | No |
+
+### Adding env vars via Vercel CLI (use `printf`, not `echo`)
+
+`echo` appends a trailing newline that gets embedded in the stored value and breaks Supabase requests at runtime:
+
+```bash
+# Correct — no trailing newline
+printf '%s' "https://<project-ref>.supabase.co" | npx vercel env add NEXT_PUBLIC_SUPABASE_URL production
+printf '%s' "<anon-key>" | npx vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY production
+```
+
+After adding env vars, **redeploy** so the build picks them up:
+
+```bash
+npx vercel --prod
+```
+
+### Supabase Auth settings
+
+In the Supabase Dashboard → Authentication → URL Configuration, add your Vercel domain to **Redirect URLs**:
+
+```
+https://<your-project>.vercel.app/**
+https://<your-project>.vercel.app
+```
+
+Password-based sign-in works without this, but email confirmation links and OAuth flows require it.
+
+### Run setup against the same Supabase project
+
+`npm run setup:supabase` must target the same Supabase project that Vercel uses. Confirm your `.env.local` `NEXT_PUBLIC_SUPABASE_URL` matches the project shown in the Vercel env vars, then run:
+
+```bash
+npm run setup:supabase
+```
+
+This creates the five demo auth users that the login page shows.
 
 ---
 
