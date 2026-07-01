@@ -60,3 +60,19 @@ export function getAllowedAdminTabs(role: UserRole | undefined): AdminTab[] {
   if (role === "Marketing") return ["templates"];
   return [];
 }
+
+// ─── Facturatie links access ──────────────────────────────────────────────────
+
+export function canManageFacturatieLinks(user: User | null | undefined): boolean {
+  if (!user) return false;
+  return user.role === "Beheerder" || user.role === "Facturatie-manager";
+}
+
+export function canViewFacturatieLinks(user: User | null | undefined): boolean {
+  if (!user) return false;
+  return (
+    user.role === "Beheerder" ||
+    user.role === "Facturatie-manager" ||
+    user.role === "Sales"
+  );
+}

@@ -160,6 +160,28 @@ export type CrmView = "list" | "board" | "billing" | "relations" | "team" | "adm
 export type PartnerPhase = "new" | "prog" | "live";
 export type AlertTone = "warning" | "critical" | "info";
 
+export type FacturatieLink = {
+  id: string;
+  partnerId: string;
+  conceptId: string;
+  label?: string;
+  createdAt: string;
+};
+
+export type FacturatieRevenueBreakdown = {
+  conceptId: string;
+  label?: string;
+  revenue: number;
+  invoiceCount?: number;
+};
+
+export type FacturatieRevenueSummary = {
+  totalRevenue?: number;
+  currency?: string;
+  period?: string;
+  concepts?: FacturatieRevenueBreakdown[];
+};
+
 export type BillingRow = {
   partnerId: string;
   partnerName: string;

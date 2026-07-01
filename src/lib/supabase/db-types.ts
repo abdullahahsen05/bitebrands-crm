@@ -171,3 +171,12 @@ export type DbTask = {
   created_at: string;
   done_at: string | null;
 };
+
+export type DbPartnerFacturatieLink = {
+  id: string;
+  partner_id: string;
+  facturatie_concept_id: string;
+  label: string | null;
+  created_at: string;
+  updated_at: string;
+};

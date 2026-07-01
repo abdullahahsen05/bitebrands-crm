@@ -89,12 +89,14 @@ The script is idempotent — safe to re-run. Existing users are skipped; profile
 
 ## Vercel deployment
 
-The frontend is a fully static Next.js app — no server-side functions. Only two environment variables are needed in Vercel:
+The frontend uses Next.js App Router with a server-side API route for facturatie revenue. Environment variables required in Vercel:
 
 | Variable | Where to find it | Required on Vercel |
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase Dashboard → Settings → API → Project URL | **Yes** |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Dashboard → Settings → API → anon/public key | **Yes** |
+| `FACTURATIE_API_URL` | Facturatie portal admin — base URL e.g. `https://facturatie.bitebrands.nl` | **Yes** |
+| `FACTURATIE_CRM_API_TOKEN` | Facturatie portal admin → Integraties → CRM token | **Yes** |
 | `SUPABASE_SERVICE_ROLE_KEY` | Scripts only — **never add to Vercel** | No |
 | `SUPABASE_DB_URL` | Scripts only — **never add to Vercel** | No |
 
@@ -209,7 +211,80 @@ To update a live Supabase project after changing the domains:
 npm run update:portals
 ```
 
-> **Invoice / revenue portal linking deferred.** The Facturatie portal is external-only for now. CRM ↔ invoice revenue sync (facturatie_partner_id, revenue tables, sync API) is intentionally not implemented in this phase.
+---
+
+## Facturatie portal integration
+
+A CRM partner can have **multiple** invoice-portal concept IDs linked to them (one-to-many). Revenue is fetched on-demand — there are no local snapshot tables.
+
+### Architecture
+
+```
+Browser → POST /api/facturatie/revenue → facturatie.bitebrands.nl (Bearer token)
+            ↑ server-side only
+           FACTURATIE_CRM_API_TOKEN never reaches the browser
+```
+
+- Links are stored in `partner_facturatie_links` (CRM's own Supabase).
+- The CRM front-end reads/writes links directly via the Supabase anon client.
+- Revenue is fetched via the Next.js route `/api/facturatie/revenue` which proxies to the facturatie portal API using a server-side bearer token.
+
+### Database migration
+
+```bash
+# Paste supabase/migrations/003_facturatie_links.sql into the Supabase SQL editor
+# or run via the migration script:
+npm run db:migrate
+```
+
+### Vercel environment variables
+
+Add to Vercel → Project Settings → Environment Variables → Production (do NOT use NEXT_PUBLIC_ prefix — these are server-only):
+
+```
+FACTURATIE_API_URL=https://facturatie.bitebrands.nl
+FACTURATIE_CRM_API_TOKEN=<token from facturatie portal admin>
+```
+
+Use `printf '%s'` when setting via CLI (same as for Supabase keys — avoids trailing newline):
+
+```bash
+printf '%s' "https://facturatie.bitebrands.nl" | npx vercel env add FACTURATIE_API_URL production
+printf '%s' "<token>" | npx vercel env add FACTURATIE_CRM_API_TOKEN production
+```
+
+### Permissions
+
+| Role | Can see links | Can add/remove |
+|---|---|---|
+| Beheerder | Yes | Yes |
+| Facturatie-manager | Yes | Yes |
+| Sales | Yes (view only) | No |
+| Marketing | No | No |
+| Operations | No | No |
+
+### External API contract
+
+`POST /api/integrations/crm/revenue-summary` on the facturatie portal:
+
+**Request:**
+```json
+{ "conceptIds": ["abc123", "def456"] }
+```
+
+**Expected response:**
+```json
+{
+  "totalRevenue": 12500.00,
+  "currency": "EUR",
+  "period": "2024",
+  "concepts": [
+    { "conceptId": "abc123", "label": "Restaurant X", "revenue": 7500.00, "invoiceCount": 12 }
+  ]
+}
+```
+
+The CRM renders whatever `totalRevenue` and `concepts[]` the portal returns. Update `FacturatieRevenueSummary` in `src/lib/types.ts` if the actual response shape differs.
 
 ---
 

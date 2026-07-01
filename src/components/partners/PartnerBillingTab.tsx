@@ -4,6 +4,8 @@ import { Toggle } from "@/components/shared/Toggle";
 import { useCrmStore } from "@/lib/crm-store";
 import type { Partner } from "@/lib/types";
 
+import { PartnerFacturatieLinksSection } from "./PartnerFacturatieLinksSection";
+
 export function PartnerBillingTab({ partner }: { partner: Partner }) {
   const config = useCrmStore((state) => state.data.config);
   const togglePartnerBillingFlag = useCrmStore((state) => state.togglePartnerBillingFlag);
@@ -60,6 +62,8 @@ export function PartnerBillingTab({ partner }: { partner: Partner }) {
           </div>
         );
       })}
+
+      <PartnerFacturatieLinksSection partner={partner} />
     </div>
   );
 }
