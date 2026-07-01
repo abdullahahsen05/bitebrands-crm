@@ -173,8 +173,8 @@ export type DbTask = {
 };
 
 export type DbPartnerFacturatieLink = {
-  id: string;
-  partner_id: string;
+  id: string; // uuid
+  partner_id: string; // text — matches partners.id
   facturatie_concept_id: string;
   label: string | null;
   created_at: string;

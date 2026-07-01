@@ -4,7 +4,7 @@
 
 create table if not exists partner_facturatie_links (
   id                    uuid primary key default uuid_generate_v4(),
-  partner_id            uuid not null references partners(id) on delete cascade,
+  partner_id            text not null references partners(id) on delete cascade,
   facturatie_concept_id text not null,
   label                 text,
   created_at            timestamptz not null default now(),
