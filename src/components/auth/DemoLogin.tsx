@@ -39,7 +39,7 @@ export function DemoLogin() {
   if (!isSupabaseConfigured) {
     return (
       <div className={`flex min-h-screen items-center justify-center ${BG} px-4`}>
-        <div className="w-full max-w-md rounded-[28px] bg-[var(--surface)] p-8 shadow-2xl text-center space-y-4">
+        <div className="w-full max-w-sm rounded-[24px] bg-[var(--surface)] p-6 shadow-2xl text-center space-y-4">
           <div className="flex justify-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent)] text-2xl font-bold text-white">
               B
@@ -58,39 +58,39 @@ export function DemoLogin() {
 
   return (
     <div className={`flex min-h-screen items-center justify-center ${BG} px-4`}>
-      <div className="w-full max-w-md rounded-[28px] bg-[var(--surface)] p-8 shadow-2xl">
+      <div className="w-full max-w-sm rounded-[24px] bg-[var(--surface)] p-6 shadow-2xl">
 
         {/* Branding */}
-        <div className="mb-6 flex flex-col items-center gap-2 text-center">
+        <div className="mb-4 flex flex-col items-center gap-1 text-center">
           {logoFailed ? (
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent)] text-2xl font-bold text-white">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--accent)] text-xl font-bold text-white">
               B
             </div>
           ) : (
-            <div className="relative h-[88px] w-[200px]">
+            <div className="relative h-[64px] w-[160px]">
               <Image
                 src="/logos/bite-brands-logo.png"
                 alt="Bite Brands"
                 fill
-                sizes="200px"
+                sizes="160px"
                 className="object-contain"
                 onError={() => setLogoFailed(true)}
                 priority
               />
             </div>
           )}
-          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--ink-soft)]">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--ink-soft)]">
             Partner CRM
           </p>
         </div>
 
-        <h1 className="grotesk text-xl font-semibold">Inloggen</h1>
-        <p className="mt-1 text-sm text-[var(--ink-soft)]">
+        <h1 className="grotesk text-lg font-semibold">Inloggen</h1>
+        <p className="mt-1 text-xs text-[var(--ink-soft)]">
           Kies je account en log in met wachtwoord{" "}
           <span className="mono font-medium">demo</span>.
         </p>
 
-        <div className="mt-6 space-y-2">
+        <div className="mt-4 space-y-1.5">
           {DEMO_USERS_PICKER.map((user) => {
             const selected = selectedUserId === user.id;
             return (
@@ -98,20 +98,20 @@ export function DemoLogin() {
                 key={user.id}
                 type="button"
                 onClick={() => setSelectedUserId(user.id)}
-                className={`flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left transition ${
+                className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left transition ${
                   selected
                     ? "border-[var(--accent)] bg-[var(--accent-soft)]"
                     : "border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--bg)]"
                 }`}
               >
                 <div
-                  className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white"
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold text-white"
                   style={{ backgroundColor: user.color }}
                 >
                   {initials(user.name)}
                 </div>
                 <div>
-                  <div className="font-semibold">{user.name}</div>
+                  <div className="text-sm font-semibold">{user.name}</div>
                   <div className="text-xs text-[var(--grey)]">{user.role}</div>
                 </div>
               </button>
@@ -127,22 +127,22 @@ export function DemoLogin() {
             if (event.key === "Enter") void handleLogin();
           }}
           placeholder="Wachtwoord"
-          className="mt-5 h-11 w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4"
+          className="mt-4 h-10 w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-3 text-sm"
           disabled={loading}
         />
 
-        {loginError ? <p className="mt-3 text-sm text-[var(--red)]">{loginError}</p> : null}
+        {loginError ? <p className="mt-2 text-xs text-[var(--red)]">{loginError}</p> : null}
 
         <Button
           variant="primary"
-          className="mt-5 w-full"
+          className="mt-4 w-full"
           onClick={() => void handleLogin()}
           disabled={loading}
         >
           {loading ? "Inloggen…" : "Inloggen"}
         </Button>
 
-        <p className="mt-5 text-center text-xs leading-6 text-[var(--grey)]">
+        <p className="mt-4 text-center text-xs leading-5 text-[var(--grey)]">
           Demo-accounts via Supabase Auth. Wachtwoord: <span className="mono">demo</span>
         </p>
       </div>
