@@ -170,14 +170,23 @@ export type FacturatieLink = {
 
 export type FacturatieConceptRevenue = {
   conceptId?: string;
-  concept?: string;
-  latestPeriodLabel?: string;
-  grossRevenue?: number;
-  commissionAmount?: number;
-  commissionVat?: number;
-  netPayout?: number;
-  invoiceCount?: number;
-  lastInvoiceNumber?: string;
+  hostRestaurantName?: string;
+  virtualConcept?: string;
+  country?: string;
+  latestPeriod?: {
+    weekKey?: string;
+    status?: string;
+  };
+  summary?: {
+    currency?: string;
+    grossRevenue?: number;
+    commissionPct?: number;
+    commissionAmount?: number;
+    commissionVat?: number;
+    netPayout?: number;
+    invoiceCount?: number;
+    lastInvoiceNumber?: string;
+  };
 };
 
 export type FacturatieRevenueSummary = {

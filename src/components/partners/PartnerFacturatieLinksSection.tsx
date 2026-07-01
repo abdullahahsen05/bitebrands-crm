@@ -36,37 +36,43 @@ function Row({ label, value, bold }: { label: string; value: string; bold?: bool
 }
 
 function ConceptRevenueCard({ item }: { item: FacturatieConceptRevenue }) {
+  const s = item.summary;
+  const name = [item.hostRestaurantName, item.virtualConcept].filter(Boolean).join(" / ") || item.conceptId || "—";
+  const period = item.latestPeriod?.weekKey;
+
   return (
     <div className="rounded-xl border border-[var(--line)] bg-[var(--bg)] p-4 space-y-3">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <div className="font-semibold text-sm">{item.concept ?? item.conceptId ?? "—"}</div>
-          {item.latestPeriodLabel && (
-            <div className="text-xs text-[var(--ink-soft)] mt-0.5">{item.latestPeriodLabel}</div>
+          <div className="font-semibold text-sm">{name}</div>
+          {period && (
+            <div className="text-xs text-[var(--ink-soft)] mt-0.5">{period}</div>
           )}
         </div>
-        {item.grossRevenue !== undefined && (
-          <div className="text-lg font-semibold shrink-0">{formatEur(item.grossRevenue)}</div>
+        {s?.grossRevenue !== undefined && (
+          <div className="text-lg font-semibold shrink-0">{formatEur(s.grossRevenue)}</div>
         )}
       </div>
 
-      <div className="border-t border-[var(--line)] pt-3 space-y-1.5">
-        {item.commissionAmount !== undefined && (
-          <Row label="Commissie" value={formatEur(item.commissionAmount)} />
-        )}
-        {item.commissionVat !== undefined && (
-          <Row label="BTW commissie" value={formatEur(item.commissionVat)} />
-        )}
-        {item.netPayout !== undefined && (
-          <Row label="Netto uitbetaling" value={formatEur(item.netPayout)} bold />
-        )}
-        {item.invoiceCount !== undefined && (
-          <Row label="Facturen" value={String(item.invoiceCount)} />
-        )}
-        {item.lastInvoiceNumber && (
-          <Row label="Laatste factuur" value={item.lastInvoiceNumber} />
-        )}
-      </div>
+      {s && (
+        <div className="border-t border-[var(--line)] pt-3 space-y-1.5">
+          {s.commissionAmount !== undefined && (
+            <Row label={`Commissie${s.commissionPct ? ` (${s.commissionPct}%)` : ""}`} value={formatEur(s.commissionAmount)} />
+          )}
+          {s.commissionVat !== undefined && (
+            <Row label="BTW commissie" value={formatEur(s.commissionVat)} />
+          )}
+          {s.netPayout !== undefined && (
+            <Row label="Netto uitbetaling" value={formatEur(s.netPayout)} bold />
+          )}
+          {s.invoiceCount !== undefined && (
+            <Row label="Facturen" value={String(s.invoiceCount)} />
+          )}
+          {s.lastInvoiceNumber && (
+            <Row label="Laatste factuur" value={s.lastInvoiceNumber} />
+          )}
+        </div>
+      )}
     </div>
   );
 }
