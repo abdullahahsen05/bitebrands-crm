@@ -21,9 +21,9 @@ export function canEditAdmin(user: User | null | undefined) {
 
 const ROLE_ALLOWED_VIEWS: Record<UserRole, CrmView[]> = {
   "Beheerder":          ["list", "board", "billing", "relations", "team", "admin"],
-  "Facturatie-manager": ["billing"],
-  "Sales":              ["list", "board"],
-  "Marketing":          ["relations", "admin"],
+  "Facturatie-manager": ["billing", "team"],
+  "Sales":              ["list", "board", "team"],
+  "Marketing":          ["relations", "admin", "team"],
   "Operations":         ["board", "team"],
 };
 
