@@ -168,18 +168,20 @@ export type FacturatieLink = {
   createdAt: string;
 };
 
-export type FacturatieRevenueBreakdown = {
-  conceptId: string;
-  label?: string;
-  revenue: number;
+export type FacturatieConceptRevenue = {
+  conceptId?: string;
+  concept?: string;
+  latestPeriodLabel?: string;
+  grossRevenue?: number;
+  commissionAmount?: number;
+  commissionVat?: number;
+  netPayout?: number;
   invoiceCount?: number;
+  lastInvoiceNumber?: string;
 };
 
 export type FacturatieRevenueSummary = {
-  totalRevenue?: number;
-  currency?: string;
-  period?: string;
-  concepts?: FacturatieRevenueBreakdown[];
+  items: FacturatieConceptRevenue[];
 };
 
 export type BillingRow = {

@@ -13,6 +13,7 @@ import {
   removePartnerFacturatieLink,
 } from "@/lib/supabase/facturatie-service";
 import type {
+  FacturatieConceptRevenue,
   FacturatieLink,
   FacturatieRevenueSummary,
   Partner,
@@ -23,6 +24,51 @@ function formatEur(amount: number): string {
     style: "currency",
     currency: "EUR",
   }).format(amount);
+}
+
+function Row({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
+  return (
+    <div className="flex justify-between gap-4 text-sm">
+      <span className="text-[var(--ink-soft)]">{label}</span>
+      <span className={bold ? "font-semibold" : ""}>{value}</span>
+    </div>
+  );
+}
+
+function ConceptRevenueCard({ item }: { item: FacturatieConceptRevenue }) {
+  return (
+    <div className="rounded-xl border border-[var(--line)] bg-[var(--bg)] p-4 space-y-3">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <div className="font-semibold text-sm">{item.concept ?? item.conceptId ?? "—"}</div>
+          {item.latestPeriodLabel && (
+            <div className="text-xs text-[var(--ink-soft)] mt-0.5">{item.latestPeriodLabel}</div>
+          )}
+        </div>
+        {item.grossRevenue !== undefined && (
+          <div className="text-lg font-semibold shrink-0">{formatEur(item.grossRevenue)}</div>
+        )}
+      </div>
+
+      <div className="border-t border-[var(--line)] pt-3 space-y-1.5">
+        {item.commissionAmount !== undefined && (
+          <Row label="Commissie" value={formatEur(item.commissionAmount)} />
+        )}
+        {item.commissionVat !== undefined && (
+          <Row label="BTW commissie" value={formatEur(item.commissionVat)} />
+        )}
+        {item.netPayout !== undefined && (
+          <Row label="Netto uitbetaling" value={formatEur(item.netPayout)} bold />
+        )}
+        {item.invoiceCount !== undefined && (
+          <Row label="Facturen" value={String(item.invoiceCount)} />
+        )}
+        {item.lastInvoiceNumber && (
+          <Row label="Laatste factuur" value={item.lastInvoiceNumber} />
+        )}
+      </div>
+    </div>
+  );
 }
 
 export function PartnerFacturatieLinksSection({
@@ -235,51 +281,11 @@ export function PartnerFacturatieLinksSection({
                 <p className="text-sm text-[var(--red)]">{revenueError}</p>
               )}
 
-              {revenue && (
-                <div className="rounded-xl border border-[var(--line)] bg-[var(--bg)] p-4 space-y-3">
-                  {revenue.totalRevenue !== undefined && (
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-semibold">
-                        {formatEur(revenue.totalRevenue)}
-                      </span>
-                      {revenue.period && (
-                        <span className="text-xs text-[var(--ink-soft)]">
-                          {revenue.period}
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {revenue.concepts && revenue.concepts.length > 0 && (
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="text-xs text-[var(--grey)] text-left">
-                          <th className="pb-1 font-medium">Concept</th>
-                          <th className="pb-1 font-medium text-right">Omzet</th>
-                          <th className="pb-1 font-medium text-right">
-                            Facturen
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[var(--line)]">
-                        {revenue.concepts.map((row) => (
-                          <tr key={row.conceptId}>
-                            <td className="py-1.5">
-                              <div className="mono text-xs text-[var(--ink-soft)]">
-                                {row.label ?? row.conceptId}
-                              </div>
-                            </td>
-                            <td className="py-1.5 text-right font-medium">
-                              {formatEur(row.revenue)}
-                            </td>
-                            <td className="py-1.5 text-right text-[var(--ink-soft)]">
-                              {row.invoiceCount ?? "—"}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
+              {revenue && revenue.items.length > 0 && (
+                <div className="space-y-3">
+                  {revenue.items.map((item, i) => (
+                    <ConceptRevenueCard key={item.conceptId ?? i} item={item} />
+                  ))}
                 </div>
               )}
             </div>

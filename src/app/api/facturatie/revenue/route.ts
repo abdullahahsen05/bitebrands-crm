@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import type { FacturatieRevenueSummary } from "@/lib/types";
+import type { FacturatieConceptRevenue } from "@/lib/types";
 
 export async function POST(req: NextRequest) {
   try {
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${apiToken}`,
         },
-        body: JSON.stringify({ conceptIds }),
+        body: JSON.stringify({ conceptIds, periodMode: "latest" }),
       },
     );
 
@@ -45,8 +45,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const data = (await upstream.json()) as FacturatieRevenueSummary;
-    return NextResponse.json(data);
+    // Normalize to { items: FacturatieConceptRevenue[] } regardless of upstream shape
+    const raw = (await upstream.json()) as unknown;
+    let items: FacturatieConceptRevenue[];
+    if (Array.isArray(raw)) {
+      items = raw as FacturatieConceptRevenue[];
+    } else if (raw && typeof raw === "object") {
+      const r = raw as Record<string, unknown>;
+      if (Array.isArray(r.data)) {
+        items = r.data as FacturatieConceptRevenue[];
+      } else if (Array.isArray(r.concepts)) {
+        items = r.concepts as FacturatieConceptRevenue[];
+      } else if (Array.isArray(r.items)) {
+        items = r.items as FacturatieConceptRevenue[];
+      } else {
+        items = [raw as FacturatieConceptRevenue];
+      }
+    } else {
+      items = [];
+    }
+
+    return NextResponse.json({ items });
   } catch (err) {
     console.error("[api/facturatie/revenue]", err);
     return NextResponse.json(
