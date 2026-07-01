@@ -191,6 +191,49 @@ Removes all rows where `name` or `title` starts with `"QA "`, plus matching chat
 
 ---
 
+## External portal URLs
+
+The three sidebar portal links point to the real client domains:
+
+| Portal | URL |
+|---|---|
+| Onboarding / Partner portal | https://aanmelden.bitebrands.nl |
+| Facturatie portal | https://facturatie.bitebrands.nl |
+| Review portal | https://reviews.bitebrands.nl |
+
+These URLs are stored in the `settings` table under keys `portal_onboarding`, `portal_facturatie`, `portal_review`. They can be overridden per-deployment in Admin → Instellingen without code changes.
+
+To update a live Supabase project after changing the domains:
+
+```bash
+npm run update:portals
+```
+
+> **Invoice / revenue portal linking deferred.** The Facturatie portal is external-only for now. CRM ↔ invoice revenue sync (facturatie_partner_id, revenue tables, sync API) is intentionally not implemented in this phase.
+
+---
+
+## Role-based access
+
+| Role | Allowed views | Admin tabs |
+|---|---|---|
+| **Beheerder** | Partners, Onboarding, Facturatie, Relaties, Team, Admin | All tabs |
+| **Facturatie-manager** | Facturatie | None |
+| **Sales** | Partners, Onboarding | None |
+| **Marketing** | Relaties, Admin (Templates only) | Templates |
+| **Operations** | Onboarding, Team | None |
+
+Restrictions are enforced in the UI layer (`src/lib/permissions.ts`):
+- Sidebar only shows allowed nav items for the current role.
+- `setView()` redirects to the default view for the role if the target is forbidden, with a toast.
+- After login / session restore the user lands on their default view.
+- Switching demo users (user menu) also re-routes to the new user's default view.
+- Admin tabs are filtered per role; forbidden tabs redirect to the first allowed tab.
+
+> This is UI-layer enforcement only. Supabase RLS hardening is deferred to Phase C.
+
+---
+
 ## Phase C — security items deferred
 
 The following were explicitly deferred from Phase B and must be addressed before production:

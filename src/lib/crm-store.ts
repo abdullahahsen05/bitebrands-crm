@@ -7,6 +7,7 @@ import { loadAllData } from "./supabase/loader";
 import { mapChatMessage, mapTask } from "./supabase/mappers";
 import type { DbChatMessage, DbTask } from "./supabase/db-types";
 import { syncConceptLiveState } from "./calculations";
+import { canAccessView, getDefaultViewForRole } from "./permissions";
 import { createInitialData } from "./mock-data";
 import type {
   AppModal,
@@ -372,7 +373,12 @@ export const useCrmStore = create<CrmStore>()((set, get) => ({
       set({ loading: true });
       try {
         const data = await loadAllData(session.user.id);
-        set({ data, loading: false, initialized: true });
+        const user = data.users.find((u) => u.id === data.currentUserId);
+        const currentView = get().ui.view;
+        const view = canAccessView(user?.role, currentView)
+          ? currentView
+          : getDefaultViewForRole(user?.role);
+        set((state) => ({ data, loading: false, initialized: true, ui: { ...state.ui, view } }));
         setupRealtimeChannels(set as Parameters<typeof setupRealtimeChannels>[0]);
       } catch (err) {
         console.error("Failed to load data after session restore:", err);
@@ -388,7 +394,9 @@ export const useCrmStore = create<CrmStore>()((set, get) => ({
         set({ loading: true });
         try {
           const data = await loadAllData(session.user.id);
-          set({ data, loading: false });
+          const user = data.users.find((u) => u.id === data.currentUserId);
+          const view = getDefaultViewForRole(user?.role);
+          set((state) => ({ data, loading: false, ui: { ...state.ui, view } }));
           setupRealtimeChannels(set as Parameters<typeof setupRealtimeChannels>[0]);
         } catch (err) {
           console.error("Failed to load data after sign in:", err);
@@ -458,8 +466,22 @@ export const useCrmStore = create<CrmStore>()((set, get) => ({
 
   // ── UI ────────────────────────────────────────────────────────────────────
 
-  setView: (view) =>
-    set((state) => ({ ui: { ...state.ui, view, mobileNavOpen: false } })),
+  setView: (view) => {
+    const user = currentUser(get().data);
+    if (!canAccessView(user?.role, view)) {
+      const fallback = getDefaultViewForRole(user?.role);
+      set((state) => ({
+        ui: {
+          ...state.ui,
+          view: fallback,
+          mobileNavOpen: false,
+          toast: { id: nextId("toast-"), message: "Geen toegang tot deze sectie voor jouw rol." },
+        },
+      }));
+      return;
+    }
+    set((state) => ({ ui: { ...state.ui, view, mobileNavOpen: false } }));
+  },
 
   setFilters: (filters) => {
     if (filters.country !== undefined) {
@@ -496,10 +518,17 @@ export const useCrmStore = create<CrmStore>()((set, get) => ({
     set((state) => ({ ui: { ...state.ui, userMenuOpen: false } })),
 
   switchUser: (userId) =>
-    set((state) => ({
-      data: { ...state.data, currentUserId: userId },
-      ui: { ...state.ui, userMenuOpen: false },
-    })),
+    set((state) => {
+      const newUser = state.data.users.find((u) => u.id === userId);
+      const currentView = state.ui.view;
+      const view = canAccessView(newUser?.role, currentView)
+        ? currentView
+        : getDefaultViewForRole(newUser?.role);
+      return {
+        data: { ...state.data, currentUserId: userId },
+        ui: { ...state.ui, userMenuOpen: false, view },
+      };
+    }),
 
   toggleMobileNav: () =>
     set((state) => ({ ui: { ...state.ui, mobileNavOpen: !state.ui.mobileNavOpen } })),

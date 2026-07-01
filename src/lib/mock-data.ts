@@ -128,9 +128,9 @@ export function createDefaultConfig(): CrmConfig {
       "Overig",
     ],
     portals: {
-      onboarding: { url: "https://demo.bitebrands.local/onboarding" },
-      facturatie: { url: "https://demo.bitebrands.local/facturatie" },
-      review: { url: "https://demo.bitebrands.local/reviews" },
+      onboarding: { url: "https://aanmelden.bitebrands.nl" },
+      facturatie: { url: "https://facturatie.bitebrands.nl" },
+      review: { url: "https://reviews.bitebrands.nl" },
     },
   };
 }

@@ -91,10 +91,10 @@ on conflict (name) do nothing;
 -- ─── Portal settings ─────────────────────────────────────────────────────────
 
 insert into settings (key, value) values
-  ('portal_onboarding', '{"url": "https://demo.bitebrands.local/onboarding"}'),
-  ('portal_facturatie',  '{"url": "https://demo.bitebrands.local/facturatie"}'),
-  ('portal_review',      '{"url": "https://demo.bitebrands.local/reviews"}')
-on conflict (key) do nothing;
+  ('portal_onboarding', '{"url": "https://aanmelden.bitebrands.nl"}'),
+  ('portal_facturatie',  '{"url": "https://facturatie.bitebrands.nl"}'),
+  ('portal_review',      '{"url": "https://reviews.bitebrands.nl"}')
+on conflict (key) do update set value = excluded.value;
 
 -- ─── Partners ────────────────────────────────────────────────────────────────
 

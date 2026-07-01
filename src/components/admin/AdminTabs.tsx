@@ -1,25 +1,30 @@
 "use client";
 
+import type { AdminTab } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
+
+const ALL_ITEMS: [AdminTab, string][] = [
+  ["landen",       "Landen"],
+  ["concepten",    "Concepten"],
+  ["stappen",      "Stappen"],
+  ["velden",       "Velden"],
+  ["platforms",    "Platforms"],
+  ["templates",    "Templates"],
+  ["relaties",     "Relatiecategorieën"],
+  ["users",        "Gebruikers"],
+  ["instellingen", "Instellingen"],
+];
 
 export function AdminTabs({
   value,
   onChange,
+  allowedTabs,
 }: {
   value: string;
   onChange: (value: string) => void;
+  allowedTabs: AdminTab[];
 }) {
-  const items = [
-    ["landen", "Landen"],
-    ["concepten", "Concepten"],
-    ["stappen", "Stappen"],
-    ["velden", "Velden"],
-    ["platforms", "Platforms"],
-    ["templates", "Templates"],
-    ["relaties", "Relatiecategorieën"],
-    ["users", "Gebruikers"],
-    ["instellingen", "Instellingen"],
-  ];
+  const items = ALL_ITEMS.filter(([id]) => allowedTabs.includes(id));
 
   return (
     <div className="mb-5 flex gap-2 overflow-x-auto border-b border-[var(--line)]">

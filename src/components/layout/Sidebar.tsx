@@ -17,6 +17,7 @@ import {
 import { VIEW_META } from "@/lib/constants";
 import { useCrmStore } from "@/lib/crm-store";
 import { openTasksForUser } from "@/lib/calculations";
+import { getAllowedNavViews } from "@/lib/permissions";
 import { getPortalAction } from "@/lib/portal-utils";
 import { cn } from "@/lib/utils";
 
@@ -44,6 +45,9 @@ export function Sidebar({
   const closeMobileNav = useCrmStore((state) => state.closeMobileNav);
   const [logoFailed, setLogoFailed] = useState(false);
 
+  const currentUser = data.users.find((u) => u.id === data.currentUserId);
+  const allowedViews = getAllowedNavViews(currentUser?.role);
+  const allowedNav = nav.filter((item) => allowedViews.includes(item.view));
   const myTasks = openTasksForUser(data.tasks, data.currentUserId).length;
 
   return (
@@ -71,7 +75,7 @@ export function Sidebar({
         Werkruimte
       </div>
       <div className="mt-3 space-y-1">
-        {nav.map((item) => {
+        {allowedNav.map((item) => {
           const Icon = item.icon;
           const active = view === item.view;
 
