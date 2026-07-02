@@ -69,19 +69,39 @@ function TotalsCard({ items }: { items: FacturatieConceptRevenue[] }) {
     { gross: 0, commission: 0, vat: 0, net: 0, invoices: 0 },
   );
 
+  // Latest period and last invoice across all concepts
+  const latestPeriod = items
+    .map((i) => i.latestPeriod?.weekKey)
+    .filter(Boolean)
+    .sort()
+    .at(-1);
+  const lastInvoice = items
+    .filter((i) => i.latestPeriod?.weekKey === latestPeriod)
+    .map((i) => i.summary?.lastInvoiceNumber)
+    .filter(Boolean)
+    .at(-1);
+
   return (
     <div className="rounded-xl border border-[var(--accent)] bg-[var(--surface)] p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-[0.15em] text-[var(--grey)]">
-          Totaal omzet
-        </span>
-        <span className="text-xl font-bold">{eur(totals.gross)}</span>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <span className="text-xs font-semibold uppercase tracking-[0.15em] text-[var(--grey)]">
+            Totaal omzet
+          </span>
+          {latestPeriod && (
+            <div className="text-xs text-[var(--ink-soft)] mt-0.5">
+              Periode: {latestPeriod}
+            </div>
+          )}
+        </div>
+        <span className="text-xl font-bold tabular-nums">{eur(totals.gross)}</span>
       </div>
       <div className="border-t border-[var(--line)] pt-3 space-y-1.5">
         <Row label="Commissie" value={eur(totals.commission)} />
         <Row label="BTW commissie" value={eur(totals.vat)} />
         <Row label="Netto uitbetaling" value={eur(totals.net)} bold accent />
         <Row label="Facturen" value={String(totals.invoices)} />
+        {lastInvoice && <Row label="Laatste factuur" value={lastInvoice} />}
       </div>
     </div>
   );
@@ -101,7 +121,9 @@ function ConceptRevenueCard({ item }: { item: FacturatieConceptRevenue }) {
         <div>
           <div className="font-medium text-sm">{name}</div>
           {period && (
-            <div className="text-xs text-[var(--ink-soft)] mt-0.5">{period}</div>
+            <div className="text-xs text-[var(--ink-soft)] mt-0.5">
+              Periode: {period}
+            </div>
           )}
         </div>
         {s?.grossRevenue !== undefined && (
@@ -133,6 +155,61 @@ function ConceptRevenueCard({ item }: { item: FacturatieConceptRevenue }) {
         </div>
       )}
     </div>
+  );
+}
+
+function LinkedConceptCard({
+  link,
+  canManage,
+  onRemove,
+}: {
+  link: FacturatieLink;
+  canManage: boolean;
+  onRemove: (id: string) => void;
+}) {
+  const [showId, setShowId] = useState(false);
+  const name =
+    [link.hostRestaurantName, link.virtualConcept].filter(Boolean).join(" / ") ||
+    link.label ||
+    link.conceptId;
+
+  return (
+    <li className="flex items-start gap-3 rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3">
+      <div className="flex-1 min-w-0 space-y-0.5">
+        <div className="text-sm font-medium truncate">{name}</div>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5">
+          {link.country && (
+            <span className="text-xs text-[var(--ink-soft)]">{link.country}</span>
+          )}
+          {link.tbPartnerId && (
+            <span className="text-xs text-[var(--ink-soft)]">
+              TB: {link.tbPartnerId}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={() => setShowId((v) => !v)}
+            className="text-xs text-[var(--grey)] hover:text-[var(--ink-soft)] transition-colors"
+          >
+            {showId ? "Verberg ID" : "Toon concept-ID"}
+          </button>
+        </div>
+        {showId && (
+          <div className="mono text-xs text-[var(--grey)] break-all pt-0.5">
+            {link.conceptId}
+          </div>
+        )}
+      </div>
+      {canManage && (
+        <button
+          type="button"
+          onClick={() => onRemove(link.id)}
+          className="text-xs text-[var(--red)] hover:underline shrink-0 mt-0.5"
+        >
+          Verwijder
+        </button>
+      )}
+    </li>
   );
 }
 
@@ -313,9 +390,14 @@ export function PartnerFacturatieLinksSection({
 
   return (
     <div className="mt-6 space-y-5">
-      <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--grey)]">
-        Facturatie koppeling
-      </h3>
+      <div className="space-y-1">
+        <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--grey)]">
+          Facturatie koppeling
+        </h3>
+        <p className="text-xs text-[var(--ink-soft)]">
+          Koppel één of meerdere facturatieconcepten om omzetgegevens uit het facturatieportaal te tonen.
+        </p>
+      </div>
 
       {linksLoading ? (
         <p className="text-sm text-[var(--ink-soft)]">Laden…</p>
@@ -330,48 +412,14 @@ export function PartnerFacturatieLinksSection({
             </p>
           ) : (
             <ul className="space-y-2">
-              {links.map((link) => {
-                const name =
-                  [link.hostRestaurantName, link.virtualConcept]
-                    .filter(Boolean)
-                    .join(" / ") ||
-                  link.label ||
-                  link.conceptId;
-                return (
-                  <li
-                    key={link.id}
-                    className="flex items-start gap-3 rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3"
-                  >
-                    <div className="flex-1 min-w-0 space-y-0.5">
-                      <div className="text-sm font-medium truncate">{name}</div>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5">
-                        {link.country && (
-                          <span className="text-xs text-[var(--ink-soft)]">
-                            {link.country}
-                          </span>
-                        )}
-                        {link.tbPartnerId && (
-                          <span className="text-xs text-[var(--ink-soft)]">
-                            TB: {link.tbPartnerId}
-                          </span>
-                        )}
-                        <span className="mono text-xs text-[var(--grey)] truncate">
-                          {link.conceptId}
-                        </span>
-                      </div>
-                    </div>
-                    {canManage && (
-                      <button
-                        type="button"
-                        onClick={() => void handleRemove(link.id)}
-                        className="text-xs text-[var(--red)] hover:underline shrink-0 mt-0.5"
-                      >
-                        Verwijder
-                      </button>
-                    )}
-                  </li>
-                );
-              })}
+              {links.map((link) => (
+                <LinkedConceptCard
+                  key={link.id}
+                  link={link}
+                  canManage={canManage}
+                  onRemove={(id) => void handleRemove(id)}
+                />
+              ))}
             </ul>
           )}
 
@@ -520,15 +568,15 @@ export function PartnerFacturatieLinksSection({
                   disabled={revenueLoading}
                   className="h-9 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 text-sm font-medium hover:bg-[var(--bg)] disabled:opacity-50 transition"
                 >
-                  {revenueLoading ? "Omzet ophalen…" : "Haal omzet op"}
+                  {revenueLoading ? "Gegevens ophalen…" : "Omzetgegevens ophalen"}
                 </button>
-                {revenue && (
+                {revenue && !revenueLoading && (
                   <button
                     type="button"
                     onClick={() => setRevenue(null)}
                     className="text-xs text-[var(--ink-soft)] hover:text-[var(--ink)]"
                   >
-                    Verberg
+                    Verberg resultaten
                   </button>
                 )}
               </div>
