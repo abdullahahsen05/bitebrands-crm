@@ -80,7 +80,30 @@ export async function POST(req: NextRequest) {
       items = [];
     }
 
-    return NextResponse.json({ items });
+    // Strip to safe summary fields — never forward IBAN, KVK, BTW, address, email, or payout-control fields
+    const safeItems = items.map((item) => ({
+      conceptId: item.conceptId,
+      hostRestaurantName: item.hostRestaurantName,
+      virtualConcept: item.virtualConcept,
+      country: item.country,
+      latestPeriod: item.latestPeriod
+        ? { weekKey: item.latestPeriod.weekKey, status: item.latestPeriod.status }
+        : undefined,
+      summary: item.summary
+        ? {
+            currency: item.summary.currency,
+            grossRevenue: item.summary.grossRevenue,
+            commissionPct: item.summary.commissionPct,
+            commissionAmount: item.summary.commissionAmount,
+            commissionVat: item.summary.commissionVat,
+            netPayout: item.summary.netPayout,
+            invoiceCount: item.summary.invoiceCount,
+            lastInvoiceNumber: item.summary.lastInvoiceNumber,
+          }
+        : undefined,
+    }));
+
+    return NextResponse.json({ items: safeItems });
   } catch (err) {
     console.error("[api/facturatie/revenue]", err);
     return NextResponse.json(

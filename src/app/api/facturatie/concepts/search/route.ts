@@ -70,5 +70,17 @@ export async function GET(req: NextRequest) {
     results = [];
   }
 
-  return NextResponse.json({ results });
+  // Strip to safe display fields — never forward IBAN, KVK, BTW, address, email, or payout fields
+  const safeResults = results.map((r) => {
+    const item = r as Record<string, unknown>;
+    return {
+      conceptId: item.conceptId ?? null,
+      hostRestaurantName: item.hostRestaurantName ?? null,
+      virtualConcept: item.virtualConcept ?? null,
+      country: item.country ?? null,
+      tbPartnerId: item.tbPartnerId ?? null,
+    };
+  });
+
+  return NextResponse.json({ results: safeResults });
 }
