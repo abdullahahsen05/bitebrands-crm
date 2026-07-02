@@ -245,6 +245,7 @@ export type UiState = {
   selectedPartnerId: string | null;
   selectedRelationId: string | null;
   adminTab: string;
+  partnerDrawerTab: string;
   modal: AppModal;
   toast: ToastState | null;
   userMenuOpen: boolean;

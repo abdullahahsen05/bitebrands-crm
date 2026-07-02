@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
 import { Drawer } from "@/components/shared/Drawer";
 import { Tabs } from "@/components/shared/Tabs";
 import { phaseOf } from "@/lib/calculations";
@@ -22,7 +20,8 @@ const tabItems = [
 ];
 
 export function PartnerDetailDrawer() {
-  const [tab, setTab] = useState("profiel");
+  const tab = useCrmStore((state) => state.ui.partnerDrawerTab);
+  const setTab = useCrmStore((state) => state.setPartnerDrawerTab);
   const selectedPartnerId = useCrmStore((state) => state.ui.selectedPartnerId);
   const partner = useCrmStore((state) =>
     state.data.partners.find((entry) => entry.id === selectedPartnerId),

@@ -44,6 +44,7 @@ type CrmStore = {
   setView: (view: CrmView) => void;
   setFilters: (filters: Partial<UiState["filters"]>) => void;
   setAdminTab: (adminTab: string) => void;
+  setPartnerDrawerTab: (tab: string) => void;
   openPartner: (partnerId: string) => void;
   closePartner: () => void;
   openRelation: (relationId: string) => void;
@@ -90,18 +91,78 @@ type CrmStore = {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const COUNTRY_FILTER_KEY = "crm_country_filter";
+const UI_STATE_KEY = "crm-ui-state";
 
-function createUiState(): UiState {
-  const savedCountry =
-    typeof window !== "undefined"
-      ? (localStorage.getItem(COUNTRY_FILTER_KEY) ?? "all")
-      : "all";
+type PersistedUiState = {
+  view: string;
+  filters: { query: string; country: string; concept: string; phase: string };
+  selectedPartnerId: string | null;
+  adminTab: string;
+  partnerDrawerTab: string;
+};
+
+function saveUiState(ui: UiState): void {
+  if (typeof window === "undefined") return;
+  try {
+    const payload: PersistedUiState = {
+      view: ui.view,
+      filters: ui.filters,
+      selectedPartnerId: ui.selectedPartnerId,
+      adminTab: ui.adminTab,
+      partnerDrawerTab: ui.partnerDrawerTab,
+    };
+    localStorage.setItem(UI_STATE_KEY, JSON.stringify(payload));
+  } catch { /* storage full or unavailable */ }
+}
+
+function loadPersistedUiState(): Partial<PersistedUiState> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(UI_STATE_KEY);
+    return raw ? (JSON.parse(raw) as Partial<PersistedUiState>) : {};
+  } catch { return {}; }
+}
+
+function clearPersistedUiState(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(UI_STATE_KEY);
+  localStorage.removeItem(COUNTRY_FILTER_KEY);
+}
+
+// Blank state — used on logout and demo reset (never reads localStorage).
+function createFreshUiState(): UiState {
   return {
     view: "list",
-    filters: { query: "", country: savedCountry, concept: "all", phase: "all" },
+    filters: { query: "", country: "all", concept: "all", phase: "all" },
     selectedPartnerId: null,
     selectedRelationId: null,
     adminTab: "landen",
+    partnerDrawerTab: "profiel",
+    modal: { type: null },
+    toast: null,
+    userMenuOpen: false,
+    mobileNavOpen: false,
+  };
+}
+
+// Startup state — restores from localStorage when available.
+function createUiState(): UiState {
+  const saved = loadPersistedUiState();
+  const savedCountry =
+    saved.filters?.country ??
+    (typeof window !== "undefined" ? (localStorage.getItem(COUNTRY_FILTER_KEY) ?? "all") : "all");
+  return {
+    view: (saved.view as CrmView | undefined) ?? "list",
+    filters: {
+      query: saved.filters?.query ?? "",
+      country: savedCountry,
+      concept: saved.filters?.concept ?? "all",
+      phase: (saved.filters?.phase ?? "all") as UiState["filters"]["phase"],
+    },
+    selectedPartnerId: saved.selectedPartnerId ?? null,
+    selectedRelationId: null,
+    adminTab: saved.adminTab ?? "landen",
+    partnerDrawerTab: saved.partnerDrawerTab ?? "profiel",
     modal: { type: null },
     toast: null,
     userMenuOpen: false,
@@ -374,11 +435,26 @@ export const useCrmStore = create<CrmStore>()((set, get) => ({
       try {
         const data = await loadAllData(session.user.id);
         const user = data.users.find((u) => u.id === data.currentUserId);
-        const currentView = get().ui.view;
-        const view = canAccessView(user?.role, currentView)
-          ? currentView
+        const savedUi = get().ui; // already has localStorage values from createUiState()
+
+        // Validate view access for restored role
+        const view = canAccessView(user?.role, savedUi.view)
+          ? savedUi.view
           : getDefaultViewForRole(user?.role);
-        set((state) => ({ data, loading: false, initialized: true, ui: { ...state.ui, view } }));
+
+        // Validate selectedPartnerId still exists in freshly loaded data
+        const selectedPartnerId =
+          savedUi.selectedPartnerId &&
+          data.partners.some((p) => p.id === savedUi.selectedPartnerId)
+            ? savedUi.selectedPartnerId
+            : null;
+
+        set((state) => ({
+          data,
+          loading: false,
+          initialized: true,
+          ui: { ...state.ui, view, selectedPartnerId },
+        }));
         setupRealtimeChannels(set as Parameters<typeof setupRealtimeChannels>[0]);
       } catch (err) {
         console.error("Failed to load data after session restore:", err);
@@ -391,12 +467,25 @@ export const useCrmStore = create<CrmStore>()((set, get) => ({
     // Listen for future auth state changes (login / logout).
     supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === "SIGNED_IN" && session?.user) {
+        // alreadyLoggedIn distinguishes a silent token refresh (tab return) from
+        // a fresh login click. On token refresh we preserve the current UI context.
+        const alreadyLoggedIn = get().data.loggedIn;
         set({ loading: true });
         try {
           const data = await loadAllData(session.user.id);
           const user = data.users.find((u) => u.id === data.currentUserId);
-          const view = getDefaultViewForRole(user?.role);
-          set((state) => ({ data, loading: false, ui: { ...state.ui, view } }));
+          if (alreadyLoggedIn) {
+            // Token refresh / silent re-auth — keep whatever the user was doing
+            const currentView = get().ui.view;
+            const view = canAccessView(user?.role, currentView)
+              ? currentView
+              : getDefaultViewForRole(user?.role);
+            set((state) => ({ data, loading: false, ui: { ...state.ui, view } }));
+          } else {
+            // Explicit fresh login — go to role default
+            const view = getDefaultViewForRole(user?.role);
+            set({ data, loading: false, ui: { ...createFreshUiState(), view } });
+          }
           setupRealtimeChannels(set as Parameters<typeof setupRealtimeChannels>[0]);
         } catch (err) {
           console.error("Failed to load data after sign in:", err);
@@ -406,9 +495,10 @@ export const useCrmStore = create<CrmStore>()((set, get) => ({
 
       if (event === "SIGNED_OUT") {
         teardownRealtimeChannels();
+        clearPersistedUiState();
         set({
           data: { ...createInitialData(), loggedIn: false },
-          ui: createUiState(),
+          ui: { ...createFreshUiState(), userMenuOpen: false },
           loginError: null,
         });
       }
@@ -446,9 +536,10 @@ export const useCrmStore = create<CrmStore>()((set, get) => ({
 
   logout: async () => {
     await supabase.auth.signOut();
+    clearPersistedUiState();
     set({
       data: { ...createInitialData(), loggedIn: false },
-      ui: { ...createUiState(), userMenuOpen: false },
+      ui: { ...createFreshUiState(), userMenuOpen: false },
       loginError: null,
     });
   },
@@ -492,6 +583,9 @@ export const useCrmStore = create<CrmStore>()((set, get) => ({
 
   setAdminTab: (adminTab) =>
     set((state) => ({ ui: { ...state.ui, adminTab } })),
+
+  setPartnerDrawerTab: (partnerDrawerTab) =>
+    set((state) => ({ ui: { ...state.ui, partnerDrawerTab } })),
 
   openPartner: (partnerId) =>
     set((state) => ({ ui: { ...state.ui, selectedPartnerId: partnerId, selectedRelationId: null } })),
@@ -549,12 +643,13 @@ export const useCrmStore = create<CrmStore>()((set, get) => ({
   resetDemoData: () => {
     // Synchronously restore mock data while preserving the active login session.
     // Use the "Herladen" button in AppShell to reload live data from Supabase.
+    clearPersistedUiState();
     set((state) => {
       const nextData = createInitialData();
       const hasCurrentUser = nextData.users.some((u) => u.id === state.data.currentUserId);
       nextData.loggedIn = state.data.loggedIn;
       nextData.currentUserId = hasCurrentUser ? state.data.currentUserId : nextData.currentUserId;
-      return { data: nextData, ui: createUiState(), loginError: null };
+      return { data: nextData, ui: createFreshUiState(), loginError: null };
     });
   },
 
@@ -1183,3 +1278,13 @@ export const useCrmStore = create<CrmStore>()((set, get) => ({
     supabase.from("tasks").delete().eq("id", taskId).then(({ error }) => err(error));
   },
 }));
+
+// Auto-persist UI state to localStorage whenever it changes (while logged in).
+// Only saves navigational fields — never saves sensitive data or tokens.
+if (typeof window !== "undefined") {
+  useCrmStore.subscribe((state, prev) => {
+    if (state.ui !== prev.ui && state.data.loggedIn) {
+      saveUiState(state.ui);
+    }
+  });
+}
