@@ -25,17 +25,32 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const upstream = await fetch(
-      `${apiUrl}/api/integrations/crm/revenue-summary`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiToken}`,
+    const controller = new AbortController();
+    const abortTimer = setTimeout(() => controller.abort(), 8000);
+
+    let upstream: Response;
+    try {
+      upstream = await fetch(
+        `${apiUrl}/api/integrations/crm/revenue-summary`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiToken}`,
+          },
+          body: JSON.stringify({ conceptIds, periodMode: "latest" }),
+          signal: controller.signal,
         },
-        body: JSON.stringify({ conceptIds, periodMode: "latest" }),
-      },
-    );
+      );
+    } catch (fetchErr) {
+      clearTimeout(abortTimer);
+      const isTimeout = fetchErr instanceof Error && fetchErr.name === "AbortError";
+      return NextResponse.json(
+        { error: isTimeout ? "Facturatie API reageert niet (timeout)" : "Kan facturatie portal niet bereiken" },
+        { status: 502 },
+      );
+    }
+    clearTimeout(abortTimer);
 
     if (!upstream.ok) {
       const text = await upstream.text().catch(() => "");
