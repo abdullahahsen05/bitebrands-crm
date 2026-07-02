@@ -8,6 +8,10 @@ function mapLink(row: DbPartnerFacturatieLink): FacturatieLink {
     partnerId: row.partner_id,
     conceptId: row.facturatie_concept_id,
     label: row.label ?? undefined,
+    country: row.country ?? undefined,
+    tbPartnerId: row.tb_partner_id ?? undefined,
+    virtualConcept: row.virtual_concept ?? undefined,
+    hostRestaurantName: row.host_restaurant_name ?? undefined,
     createdAt: row.created_at,
   };
 }
@@ -24,17 +28,29 @@ export async function getPartnerFacturatieLinks(
   return (data ?? []).map((row) => mapLink(row as DbPartnerFacturatieLink));
 }
 
+type LinkMetadata = {
+  label?: string;
+  country?: string;
+  tbPartnerId?: string;
+  virtualConcept?: string;
+  hostRestaurantName?: string;
+};
+
 export async function addPartnerFacturatieLink(
   partnerId: string,
   facturatieConceptId: string,
-  label?: string,
+  meta?: LinkMetadata,
 ): Promise<FacturatieLink> {
   const { data, error } = await supabase
     .from("partner_facturatie_links")
     .insert({
       partner_id: partnerId,
       facturatie_concept_id: facturatieConceptId,
-      label: label ?? null,
+      label: meta?.label ?? null,
+      country: meta?.country ?? null,
+      tb_partner_id: meta?.tbPartnerId ?? null,
+      virtual_concept: meta?.virtualConcept ?? null,
+      host_restaurant_name: meta?.hostRestaurantName ?? null,
     })
     .select("*")
     .single();

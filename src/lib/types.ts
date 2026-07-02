@@ -165,7 +165,19 @@ export type FacturatieLink = {
   partnerId: string;
   conceptId: string;
   label?: string;
+  country?: string;
+  tbPartnerId?: string;
+  virtualConcept?: string;
+  hostRestaurantName?: string;
   createdAt: string;
+};
+
+export type FacturatieConceptSearchResult = {
+  conceptId: string;
+  hostRestaurantName?: string;
+  virtualConcept?: string;
+  country?: string;
+  tbPartnerId?: string;
 };
 
 export type FacturatieConceptRevenue = {

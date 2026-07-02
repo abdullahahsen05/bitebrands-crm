@@ -177,6 +177,10 @@ export type DbPartnerFacturatieLink = {
   partner_id: string; // text — matches partners.id
   facturatie_concept_id: string;
   label: string | null;
+  country: string | null;
+  tb_partner_id: string | null;
+  virtual_concept: string | null;
+  host_restaurant_name: string | null;
   created_at: string;
   updated_at: string;
 };
